@@ -133,15 +133,13 @@ func _show_settings(back: Callable) -> void:
 	grid.add_theme_constant_override("h_separation", 18)
 	grid.add_theme_constant_override("v_separation", 14)
 	box.add_child(grid)
-	_slider_row(grid, "Mouse sensitivity", 0.1, 3.0, 0.05, Settings.mouse_sensitivity,
-		func(v: float) -> String: return "%.2fx" % v,
+	_slider_row(grid, "Mouse sensitivity", Settings.SENSITIVITY_MIN, Settings.SENSITIVITY_MAX, 0.01,
+		Settings.mouse_sensitivity, "x",
 		func(v: float) -> void: Settings.mouse_sensitivity = v)
-	_slider_row(grid, "Field of view", 60.0, 100.0, 1.0, Settings.fov,
-		func(v: float) -> String: return "%d°" % v,
+	_slider_row(grid, "Field of view", 60.0, 100.0, 1.0, Settings.fov, "°",
 		func(v: float) -> void: Settings.fov = v)
-	_slider_row(grid, "Camera bob", 0.0, 1.0, 0.05, Settings.camera_bob,
-		func(v: float) -> String: return "%d%%" % roundi(v * 100),
-		func(v: float) -> void: Settings.camera_bob = v)
+	_slider_row(grid, "Camera bob", 0.0, 100.0, 5.0, Settings.camera_bob * 100.0, "%",
+		func(v: float) -> void: Settings.camera_bob = v / 100.0)
 	var label := _text(grid, "Invert mouse Y", 22)
 	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
 	var check := CheckButton.new()
@@ -257,24 +255,34 @@ func _spacer(box: Control) -> void:
 	box.add_child(s)
 
 
+## Slider plus a linked SpinBox so the exact value can also be typed in.
 func _slider_row(grid: GridContainer, name: String, lo: float, hi: float, step: float,
-		value: float, fmt: Callable, apply: Callable) -> void:
+		value: float, suffix: String, apply: Callable) -> void:
 	var label := _text(grid, name, 22)
 	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
 	var slider := HSlider.new()
-	slider.min_value = lo
-	slider.max_value = hi
-	slider.step = step
-	slider.value = value
+	var spin := SpinBox.new()
+	for r: Range in [slider, spin]:
+		r.min_value = lo
+		r.max_value = hi
+		r.step = step
+		r.value = value
+	# Link both to one shared value so dragging and typing stay in sync.
+	slider.share(spin)
 	slider.custom_minimum_size = Vector2(320, 32)
 	slider.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	grid.add_child(slider)
-	var readout := _text(grid, fmt.call(value), 22, Color(1, 0.85, 0.4))
-	readout.custom_minimum_size.x = 80
-	readout.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+	spin.suffix = suffix
+	spin.select_all_on_focus = true
+	spin.custom_minimum_size.x = 120
+	spin.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	var line := spin.get_line_edit()
+	line.add_theme_font_size_override("font_size", 22)
+	line.add_theme_color_override("font_color", Color(1, 0.85, 0.4))
+	line.alignment = HORIZONTAL_ALIGNMENT_RIGHT
+	grid.add_child(spin)
 	slider.value_changed.connect(func(v: float) -> void:
 		apply.call(v)
-		readout.text = fmt.call(v)
 		Settings.save())
 
 

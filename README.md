@@ -18,7 +18,7 @@ Open the folder in Godot 4.7 and press Play, or run `godot --path .`
 | Q / right-click | Throw a coin to distract guards (you get 5) |
 | Esc / P | Pause |
 
-Settings (title or pause menu): **mouse sensitivity**, **field of view**, **camera bob**, and **invert Y**. They save automatically.
+Settings (title or pause menu): **mouse sensitivity** (0.05x–5x), **field of view**, **camera bob**, and **invert Y**. Drag a slider or type an exact value in the box next to it. They save automatically.
 
 ## How it plays
 
